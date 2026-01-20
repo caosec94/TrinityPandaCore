@@ -32,6 +32,7 @@
 #include "Log.h"
 #include "Master.h"
 #include "World.h"
+#include "CrashHandler.h"
 
 #ifndef _TRINITY_CORE_CONFIG
 # define _TRINITY_CORE_CONFIG  "worldserver.conf"
@@ -71,6 +72,11 @@ void usage(const char* prog)
     printf("    -s uninstall             uninstall service\n");
 #endif
 }
+int main(int argc, char** argv)
+{
+#ifdef _WIN32
+    InitCrashHandler();
+#endif
 
 /// Launch the Trinity server
 extern int main(int argc, char** argv)
