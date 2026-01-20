@@ -58,7 +58,11 @@ LoginDatabaseWorkerPool LoginDatabase;                      ///< Accessor to the
 
 RealmNameMap realmNameStore;
 uint32 realmID;                                             ///< Id of the realm
-
+int main(int argc, char** argv)
+{
+#ifdef _WIN32
+    InitCrashHandler();
+#endif
 /// Print out the usage string for this program on the console.
 void usage(const char* prog)
 {
@@ -72,11 +76,6 @@ void usage(const char* prog)
     printf("    -s uninstall             uninstall service\n");
 #endif
 }
-int main(int argc, char** argv)
-{
-#ifdef _WIN32
-    InitCrashHandler();
-#endif
 
 /// Launch the Trinity server
 extern int main(int argc, char** argv)
