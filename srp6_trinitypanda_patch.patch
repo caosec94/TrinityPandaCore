@@ -1,0 +1,114 @@
+diff --git a/sql/base/auth_database.sql b/sql/base/auth_database.sql
+index 1111111..2222222 100644
+--- a/sql/base/auth_database.sql
++++ b/sql/base/auth_database.sql
+@@ -1,6 +1,12 @@
+ ALTER TABLE `account`
+-DROP COLUMN `sha_pass_hash`;
++DROP COLUMN IF EXISTS `sha_pass_hash`,
++ADD COLUMN `salt` CHAR(64) NOT NULL AFTER `username`,
++ADD COLUMN `verifier` CHAR(64) NOT NULL AFTER `salt`,
++ADD COLUMN `locked` TINYINT(1) NOT NULL DEFAULT 0 AFTER `verifier`,
++ADD COLUMN `coins` INT NOT NULL DEFAULT 0 AFTER `locked`;
++
+ 
+diff --git a/src/server/authserver/Server/AuthSession.cpp b/src/server/authserver/Server/AuthSession.cpp
+index 3333333..4444444 100644
+--- a/src/server/authserver/Server/AuthSession.cpp
++++ b/src/server/authserver/Server/AuthSession.cpp
+@@ -180,7 +180,8 @@ void AuthSession::HandleLogonChallenge()
+     PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_INFO);
+     stmt->setString(0, _login);
+ 
+-    // Old: sha_pass_hash
++    // SRP6 real: salt + verifier
+     PreparedQueryResult result = LoginDatabase.Query(stmt);
+ 
+     if (!result)
+@@ -195,9 +196,13 @@ void AuthSession::HandleLogonChallenge()
+     Field* fields = result->Fetch();
+ 
+     _accountId = fields[0].GetUInt32();
+-    std::string shaPassHash = fields[2].GetString();
++    std::string salt = fields[2].GetString();
++    std::string verifier = fields[3].GetString();
+ 
+-    _v.SetHexStr(shaPassHash.c_str());
++    _s.SetHexStr(salt.c_str());
++    _v.SetHexStr(verifier.c_str());
++
++    _srp.SetSalt(_s);
++    _srp.SetVerifier(_v);
+ }
+ 
+diff --git a/src/server/game/Accounts/AccountMgr.cpp b/src/server/game/Accounts/AccountMgr.cpp
+index 5555555..6666666 100644
+--- a/src/server/game/Accounts/AccountMgr.cpp
++++ b/src/server/game/Accounts/AccountMgr.cpp
+@@ -25,6 +25,9 @@
+ #include "DatabaseEnv.h"
+ #include "Log.h"
+ #include "Util.h"
++#include "BigNumber.h"
++#include "SHA1.h"
++#include "SRP6.h"
+ 
+ bool AccountMgr::CreateAccount(std::string const& username, std::string const& password)
+ {
+@@ -35,12 +38,41 @@ bool AccountMgr::CreateAccount(std::string const& username, std::string const& password)
+     std::transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+ 
+-    std::string shaPassHash = CalculateShaPassHash(uname, password);
++    BigNumber s;
++    BigNumber v;
++    BigNumber N;
++    BigNumber g;
++
++    N.SetHexStr(SRP_N);
++    g.SetDword(SRP_G);
++
++    // Salt 32 bytes
++    s.SetRand(32 * 8);
++
++    // x = SHA1( U:P )
++    SHA1Hash sha;
++    sha.Initialize();
++    sha.UpdateData(uname);
++    sha.UpdateData(":");
++    sha.UpdateData(password);
++    sha.Finalize();
++
++    BigNumber x;
++    x.SetBinary(sha.GetDigest(), SHA_DIGEST_LENGTH);
++
++    // v = g^x % N
++    v = g.ModExp(x, N);
++
++    std::string saltHex = s.AsHexStr();
++    std::string verifierHex = v.AsHexStr();
+ 
+     PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT);
+-    stmt->setString(0, uname);
+-    stmt->setString(1, shaPassHash);
++    stmt->setString(0, uname);
++    stmt->setString(1, saltHex);
++    stmt->setString(2, verifierHex);
+ 
+     LoginDatabase.Execute(stmt);
+     return true;
+ }
+ 
+diff --git a/src/server/database/Database/Implementation/LoginDatabase.cpp b/src/server/database/Database/Implementation/LoginDatabase.cpp
+index 7777777..8888888 100644
+--- a/src/server/database/Database/Implementation/LoginDatabase.cpp
++++ b/src/server/database/Database/Implementation/LoginDatabase.cpp
+@@ -40,7 +40,7 @@ void LoginDatabaseConnection::DoPrepareStatements()
+ 
+     PrepareStatement(LOGIN_SEL_ACCOUNT_INFO,
+-        "SELECT id, username, sha_pass_hash FROM account WHERE username = ?");
++        "SELECT id, username, salt, verifier FROM account WHERE username = ?");
+ 
+     PrepareStatement(LOGIN_INS_ACCOUNT,
+-        "INSERT INTO account (username, sha_pass_hash) VALUES (?, ?)");
++        "INSERT INTO account (username, salt, verifier) VALUES (?, ?, ?)");
+ }
